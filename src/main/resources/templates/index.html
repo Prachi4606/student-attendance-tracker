@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            color: #1d4ed8;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .card {
+            padding: 18px;
+            border-radius: 10px;
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+        }
+
+        .card p {
+            margin: 0 0 10px;
+            color: #475569;
+        }
+
+        .card h2 {
+            margin: 0;
+            color: #1d4ed8;
+        }
+
+        .present-card {
+            background: #f0fdf4;
+            border-color: #16a34a;
+        }
+
+        .present-card h2 {
+            color: #15803d;
+        }
+
+        .absent-card {
+            background: #fef2f2;
+            border-color: #dc2626;
+        }
+
+        .absent-card h2 {
+            color: #b91c1c;
+        }
+
+        input, button {
+            padding: 11px;
+            margin: 5px 2px;
+            font-size: 14px;
+        }
+
+        input {
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .absent-button {
+            background: #dc2626;
+        }
+
+        .absent-button:hover {
+            background: #b91c1c;
+        }
+
+        .date-form {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            min-width: 750px;
+        }
+
+        th, td {
+            padding: 13px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #dbeafe;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .status-present {
+            color: #15803d;
+        }
+
+        .status-absent {
+            color: #b91c1c;
+        }
+
+        .status-unmarked {
+            color: #64748b;
+        }
+
+        .percentage {
+            font-weight: bold;
+            color: #1d4ed8;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 25px;
+        }
+
+        @media (max-width: 750px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .dashboard {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .add-form input {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Student Attendance Tracker</h1>
+    <p class="subtitle">
+        Manage daily attendance and monitor student performance.
+    </p>
+
+    <div class="dashboard">
+        <div class="card">
+            <p>Total Students</p>
+            <h2 th:text="${totalStudents}">0</h2>
+        </div>
+
+        <div class="card present-card">
+            <p>Present Today</p>
+            <h2 th:text="${presentToday}">0</h2>
+        </div>
+
+        <div class="card absent-card">
+            <p>Absent Today</p>
+            <h2 th:text="${absentToday}">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Not Marked Today</p>
+            <h2 th:text="${totalStudents - presentToday - absentToday}">0</h2>
+        </div>
+    </div>
+
+    <h3>Add Student</h3>
+
+    <form class="add-form" action="/add" method="post">
+        <input type="text" name="name"
+               placeholder="Student Name" required>
+
+        <input type="text" name="rollNumber"
+               placeholder="Roll Number" required>
+
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h3>Daily Attendance</h3>
+
+    <form class="date-form" action="/" method="get">
+        <label for="date"><strong>Select Date:</strong></label>
+        <input type="date" id="date" name="date"
+               th:value="${selectedDate}" required>
+        <button type="submit">View Date</button>
+    </form>
+
+    <p>
+        Attendance for:
+        <strong th:text="${selectedDate}"></strong>
+    </p>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Roll Number</th>
+                <th>Status</th>
+                <th>Present Days</th>
+                <th>Absent Days</th>
+                <th>Attendance %</th>
+                <th>Mark Attendance</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="student, stat : ${students}">
+                <td th:text="${student.name}"></td>
+
+                <td th:text="${student.rollNumber}"></td>
+
+                <td>
+                    <span th:with="status=${student.attendance.get(selectedDate)}"
+                          th:text="${status != null ? status : 'Not Marked'}"
+                          th:class="${status == 'Present' ? 'status status-present' :
+                                     (status == 'Absent' ? 'status status-absent' :
+                                     'status status-unmarked')}">
+                    </span>
+                </td>
+
+                <td th:text="${student.presentDays}">0</td>
+
+                <td th:text="${student.absentDays}">0</td>
+
+                <td class="percentage"
+                    th:text="${#numbers.formatDecimal(student.attendancePercentage, 1, 2) + '%'}">
+                    0.00%
+                </td>
+
+                <td>
+                    <form th:action="@{/mark/{index}(index=${stat.index})}"
+                          method="post">
+
+                        <input type="hidden" name="date"
+                               th:value="${selectedDate}">
+
+                        <button type="submit" name="status"
+                                value="Present">
+                            Present
+                        </button>
+
+                        <button type="submit" name="status"
+                                value="Absent" class="absent-button">
+                            Absent
+                        </button>
+                    </form>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(students)}">
+                <td colspan="7" class="empty">
+                    No students added yet. Add a student to get started!
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>
