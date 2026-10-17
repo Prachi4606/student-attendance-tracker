@@ -1,5 +1,5 @@
 
-package com.attendance.studentattendancetracker;
+package com.attendance.student_attendance_tracker;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
